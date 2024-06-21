@@ -1,0 +1,422 @@
+diff --git a/apps/in_hand_scanner/src/offline_integration.cpp b/apps/in_hand_scanner/src/offline_integration.cpp
+index 7340563af..97f51366e 100644
+--- a/apps/in_hand_scanner/src/offline_integration.cpp
++++ b/apps/in_hand_scanner/src/offline_integration.cpp
+@@ -195,7 +195,7 @@ pcl::ihs::OfflineIntegration::getFilesFromDirectory (const std::string&
+   for (boost::filesystem::directory_iterator it (path_dir); it != it_end; ++it)
+   {
+     if (!is_directory (it->status ()) &&
+-        boost::algorithm::to_upper_copy (boost::filesystem::extension (it->path ())) == boost::algorithm::to_upper_copy (extension))
++        boost::algorithm::to_upper_copy (it->path ().extension()) == boost::algorithm::to_upper_copy (extension))
+     {
+       files.push_back (it->path ().string ());
+     }
+diff --git a/doc/tutorials/content/sources/vfh_recognition/build_tree.cpp b/doc/tutorials/content/sources/vfh_recognition/build_tree.cpp
+index ee1bda7ac..4d3b5f1a1 100644
+--- a/doc/tutorials/content/sources/vfh_recognition/build_tree.cpp
++++ b/doc/tutorials/content/sources/vfh_recognition/build_tree.cpp
+@@ -78,7 +78,7 @@ loadFeatureModels (const boost::filesystem::path &base_dir, const std::string &e
+       pcl::console::print_highlight ("Loading %s (%lu models loaded so far).\n", ss.str ().c_str (), (unsigned long)models.size ());
+       loadFeatureModels (it->path (), extension, models);
+     }
+-    if (boost::filesystem::is_regular_file (it->status ()) && boost::filesystem::extension (it->path ()) == extension)
++    if (boost::filesystem::is_regular_file (it->status ()) && it->path ().extension() == extension)
+     {
+       vfh_model m;
+       if (loadHist (base_dir / it->path ().filename (), m))
+diff --git a/gpu/kinfu_large_scale/tools/standalone_texture_mapping.cpp b/gpu/kinfu_large_scale/tools/standalone_texture_mapping.cpp
+index 092f3f897..574568d3f 100644
+--- a/gpu/kinfu_large_scale/tools/standalone_texture_mapping.cpp
++++ b/gpu/kinfu_large_scale/tools/standalone_texture_mapping.cpp
+@@ -433,11 +433,11 @@ main (int argc, char** argv)
+   std::string extension (".txt");
+   for (boost::filesystem::directory_iterator it (base_dir); it != boost::filesystem::directory_iterator (); ++it)
+   {
+-    if(boost::filesystem::is_regular_file (it->status ()) && boost::filesystem::extension (it->path ()) == extension)
++    if(boost::filesystem::is_regular_file (it->status ()) && it->path ().extension() == extension)
+     {
+       pcl::TextureMapping<pcl::PointXYZ>::Camera cam;
+       readCamPoseFile(it->path ().string (), cam);
+-      cam.texture_file = boost::filesystem::basename (it->path ()) + ".png";
++      cam.texture_file = itr->path ().stem().string() + ".png";
+       my_cams.push_back (cam);
+     }
+   }
+diff --git a/io/src/ascii_io.cpp b/io/src/ascii_io.cpp
+index 269f4a165..7628be935 100644
+--- a/io/src/ascii_io.cpp
++++ b/io/src/ascii_io.cpp
+@@ -97,7 +97,7 @@ pcl::ASCIIReader::readHeader (const std::string& file_name,
+     PCL_ERROR ("[%s] File %s does not exist.\n", name_.c_str (), file_name.c_str ());
+     return (-1);
+   }
+-  if (boost::filesystem::extension (fpath) != extension_)
++  if (fpath.extension() != extension_)
+   {
+     PCL_ERROR ("[%s] File does not have %s extension. \n", name_.c_str(), extension_.c_str());
+     return -1;
+diff --git a/io/src/image_grabber.cpp b/io/src/image_grabber.cpp
+index 3d23fa1a2..1b603e130 100644
+--- a/io/src/image_grabber.cpp
++++ b/io/src/image_grabber.cpp
+@@ -299,9 +299,9 @@ pcl::ImageGrabberBase::ImageGrabberImpl::loadDepthAndRGBFiles (const std::string
+   boost::filesystem::directory_iterator end_itr;
+   for (boost::filesystem::directory_iterator itr (dir); itr != end_itr; ++itr)
+   {
+-    extension = boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ()));
++    extension = boost::algorithm::to_upper_copy (itr->path ().extension().string());
+     pathname = itr->path ().string ();
+-    basename = boost::filesystem::basename (itr->path ());
++    basename = itr->path ().stem().string();
+     if (!boost::filesystem::is_directory (itr->status ())
+         && isValidExtension (extension))
+     {
+@@ -342,9 +342,9 @@ pcl::ImageGrabberBase::ImageGrabberImpl::loadDepthAndRGBFiles (const std::string
+   // First iterate over depth images
+   for (boost::filesystem::directory_iterator itr (depth_dir); itr != end_itr; ++itr)
+   {
+-    extension = boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ()));
++    extension = boost::algorithm::to_upper_copy (itr->path ().extension().string());
+     pathname = itr->path ().string ();
+-    basename = boost::filesystem::basename (itr->path ());
++    basename = itr->path ().stem().string();
+     if (!boost::filesystem::is_directory (itr->status ())
+         && isValidExtension (extension))
+     {
+@@ -357,9 +357,9 @@ pcl::ImageGrabberBase::ImageGrabberImpl::loadDepthAndRGBFiles (const std::string
+   // Then iterate over RGB images
+   for (boost::filesystem::directory_iterator itr (rgb_dir); itr != end_itr; ++itr)
+   {
+-    extension = boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ()));
++    extension = boost::algorithm::to_upper_copy (itr->path ().extension().string());
+     pathname = itr->path ().string ();
+-    basename = boost::filesystem::basename (itr->path ());
++    basename = itr->path ().stem().string();
+     if (!boost::filesystem::is_directory (itr->status ())
+         && isValidExtension (extension))
+     {
+@@ -398,9 +398,9 @@ pcl::ImageGrabberBase::ImageGrabberImpl::loadPCLZFFiles (const std::string &dir)
+   boost::filesystem::directory_iterator end_itr;
+   for (boost::filesystem::directory_iterator itr (dir); itr != end_itr; ++itr)
+   {
+-    extension = boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ()));
++    extension = boost::algorithm::to_upper_copy (itr->path ().extension().string());
+     pathname = itr->path ().string ();
+-    basename = boost::filesystem::basename (itr->path ());
++    basename = itr->path ().stem().string();
+     if (!boost::filesystem::is_directory (itr->status ())
+         && isValidExtension (extension))
+     {
+@@ -461,7 +461,8 @@ pcl::ImageGrabberBase::ImageGrabberImpl::getTimestampFromFilepath (
+ {
+   // For now, we assume the file is of the form frame_[22-char POSIX timestamp]_*
+   char timestamp_str[256];
+-  int result = std::sscanf (boost::filesystem::basename (filepath).c_str (),
++  boost::filesystem::path p (filepath);
++  int result = std::sscanf (p.stem().string().c_str (),
+                             "frame_%22s_%*s",
+                             timestamp_str);
+   if (result > 0)
+@@ -1002,11 +1003,12 @@ std::string
+ pcl::ImageGrabberBase::getCurrentDepthFileName () const
+ {
+   std::string pathname;
++  boost::filesystem::path path{pathname};
+   if (impl_->pclzf_mode_)
+     pathname = impl_->depth_pclzf_files_[impl_->cur_frame_];
+   else
+     pathname = impl_->depth_image_files_[impl_->cur_frame_];
+-  std::string basename = boost::filesystem::basename (pathname);
++  std::string basename = path.stem().string();
+   return (basename);
+ }
+ //////////////////////////////////////////////////////////////////////////////////////////
+@@ -1014,11 +1016,12 @@ std::string
+ pcl::ImageGrabberBase::getPrevDepthFileName () const
+ {
+   std::string pathname;
++  boost::filesystem::path path{pathname};
+   if (impl_->pclzf_mode_)
+     pathname = impl_->depth_pclzf_files_[impl_->cur_frame_-1];
+   else
+     pathname = impl_->depth_image_files_[impl_->cur_frame_-1];
+-  std::string basename = boost::filesystem::basename (pathname);
++  std::string basename = path.stem().string();
+   return (basename);
+ }
+ 
+@@ -1027,11 +1030,12 @@ std::string
+ pcl::ImageGrabberBase::getDepthFileNameAtIndex (std::size_t idx) const
+ {
+   std::string pathname;
++  boost::filesystem::path path{pathname};
+   if (impl_->pclzf_mode_)
+     pathname = impl_->depth_pclzf_files_[idx];
+   else
+     pathname = impl_->depth_image_files_[idx];
+-  std::string basename = boost::filesystem::basename (pathname);
++  std::string basename = path.stem().string();
+   return (basename);
+ }
+ 
+diff --git a/outofcore/include/pcl/outofcore/impl/octree_base.hpp b/outofcore/include/pcl/outofcore/impl/octree_base.hpp
+index acf0b5969..117852e56 100644
+--- a/outofcore/include/pcl/outofcore/impl/octree_base.hpp
++++ b/outofcore/include/pcl/outofcore/impl/octree_base.hpp
+@@ -93,7 +93,7 @@ namespace pcl
+       root_node_->m_tree_ = this;
+ 
+       // Set the path to the outofcore octree metadata (unique to the root folder) ending in .octree
+-      boost::filesystem::path treepath = root_name.parent_path () / (boost::filesystem::basename (root_name) + TREE_EXTENSION_);
++      boost::filesystem::path treepath = root_name.parent_path () / (root_name.stem() + TREE_EXTENSION_);
+ 
+       //Load the JSON metadata
+       metadata_->loadMetadataFromDisk (treepath);
+@@ -169,7 +169,7 @@ namespace pcl
+       root_node_->m_tree_ = this;
+       
+       // Set root nodes file path
+-      boost::filesystem::path treepath = dir / (boost::filesystem::basename (root_name) + TREE_EXTENSION_);
++      boost::filesystem::path treepath = dir / root_name.stem() + TREE_EXTENSION_);
+ 
+       //fill the fields of the metadata
+       metadata_->setCoordinateSystem (coord_sys);
+@@ -699,9 +699,9 @@ namespace pcl
+     template<typename ContainerT, typename PointT> bool
+     OutofcoreOctreeBase<ContainerT, PointT>::checkExtension (const boost::filesystem::path& path_name)
+     {
+-      if (boost::filesystem::extension (path_name) != OutofcoreOctreeBaseNode<ContainerT, PointT>::node_index_extension)
++      if (path_name.extension() != OutofcoreOctreeBaseNode<ContainerT, PointT>::node_index_extension)
+       {
+-        PCL_ERROR ( "[pcl::outofcore::OutofcoreOctreeBase] Wrong root node file extension: %s. The tree must have a root node ending in %s\n", boost::filesystem::extension (path_name).c_str (), OutofcoreOctreeBaseNode<ContainerT, PointT>::node_index_extension.c_str () );
++        PCL_ERROR ( "[pcl::outofcore::OutofcoreOctreeBase] Wrong root node file extension: %s. The tree must have a root node ending in %s\n", path_name.extension().c_str (), OutofcoreOctreeBaseNode<ContainerT, PointT>::node_index_extension.c_str () );
+         return (false);
+       }
+ 
+diff --git a/outofcore/include/pcl/outofcore/impl/octree_base_node.hpp b/outofcore/include/pcl/outofcore/impl/octree_base_node.hpp
+index 8492c4179..2f9d95eaf 100644
+--- a/outofcore/include/pcl/outofcore/impl/octree_base_node.hpp
++++ b/outofcore/include/pcl/outofcore/impl/octree_base_node.hpp
+@@ -150,7 +150,7 @@ namespace pcl
+ 
+           if (!boost::filesystem::is_directory (file))
+           {
+-            if (boost::filesystem::extension (file) == node_index_extension)
++            if (file.extension() == node_index_extension)
+             {
+               b_loaded = node_metadata_->loadMetadataFromDisk (file);
+               break;
+@@ -1942,7 +1942,7 @@ namespace pcl
+     template<typename ContainerT, typename PointT> void
+     OutofcoreOctreeBaseNode<ContainerT, PointT>::convertToXYZRecursive ()
+     {
+-      std::string fname = boost::filesystem::basename (node_metadata_->getPCDFilename ()) + std::string (".dat.xyz");
++      std::string fname = node_metadata_->getPCDFilename ().stem() + std::string (".dat.xyz");
+       boost::filesystem::path xyzfile = node_metadata_->getDirectoryPathname () / fname;
+       payload_->convertToXYZ (xyzfile);
+ 
+@@ -2055,7 +2055,7 @@ namespace pcl
+           const boost::filesystem::path& file = *diter;
+           if (!boost::filesystem::is_directory (file))
+           {
+-            if (boost::filesystem::extension (file) == OutofcoreOctreeBaseNode<ContainerT, PointT>::node_index_extension)
++            if (file.extension() == OutofcoreOctreeBaseNode<ContainerT, PointT>::node_index_extension)
+             {
+               thisnode->thisnodeindex_ = file;
+               loaded = true;
+diff --git a/outofcore/tools/outofcore_print.cpp b/outofcore/tools/outofcore_print.cpp
+index da2b6fba5..e3c643161 100644
+--- a/outofcore/tools/outofcore_print.cpp
++++ b/outofcore/tools/outofcore_print.cpp
+@@ -297,7 +297,7 @@ main (int argc, char* argv[])
+       const boost::filesystem::path& file = *diter;
+       if (!boost::filesystem::is_directory (file))
+       {
+-        if (boost::filesystem::extension (file) == OctreeDiskNode::node_index_extension)
++        if (file.extension() == OctreeDiskNode::node_index_extension)
+         {
+           tree_root = file;
+         }
+diff --git a/outofcore/tools/outofcore_viewer.cpp b/outofcore/tools/outofcore_viewer.cpp
+index 5098aeb27..302f08b5c 100644
+--- a/outofcore/tools/outofcore_viewer.cpp
++++ b/outofcore/tools/outofcore_viewer.cpp
+@@ -387,7 +387,7 @@ main (int argc, char* argv[])
+       const boost::filesystem::path& file = *diter;
+       if (!boost::filesystem::is_directory (file))
+       {
+-        if (boost::filesystem::extension (file) == octree_disk_node::node_index_extension)
++        if (file.extension() == octree_disk_node::node_index_extension)
+         {
+           tree_root = file;
+         }
+diff --git a/test/io/test_grabbers.cpp b/test/io/test_grabbers.cpp
+index b280a0186..f29baa08e 100644
+--- a/test/io/test_grabbers.cpp
++++ b/test/io/test_grabbers.cpp
+@@ -522,7 +522,7 @@ int
+   boost::filesystem::directory_iterator end_itr;
+   for (boost::filesystem::directory_iterator itr (pcd_dir_); itr != end_itr; ++itr)
+   {
+-    if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ())) == ".PCD" )
++    if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (itr->path ().extension()) == ".PCD" )
+     {
+       pcd_files_.push_back (itr->path ().string ());
+       std::cout << "added: " << itr->path ().string () << std::endl;
+diff --git a/tools/fast_bilateral_filter.cpp b/tools/fast_bilateral_filter.cpp
+index cbec06834..501ff48e8 100644
+--- a/tools/fast_bilateral_filter.cpp
++++ b/tools/fast_bilateral_filter.cpp
+@@ -212,7 +212,7 @@ main (int argc, char** argv)
+       for (boost::filesystem::directory_iterator itr (input_dir); itr != end_itr; ++itr)
+       {
+         // Only add PCD files
+-        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ())) == ".PCD" )
++        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (itr->path ().extension()) == ".PCD" )
+         {
+           pcd_files.push_back (itr->path ().string ());
+           PCL_INFO ("[Batch processing mode] Added %s for processing.\n", itr->path ().string ().c_str ());
+diff --git a/tools/grid_min.cpp b/tools/grid_min.cpp
+index 8b50b827e..4285c73cf 100644
+--- a/tools/grid_min.cpp
++++ b/tools/grid_min.cpp
+@@ -205,7 +205,7 @@ main (int argc, char** argv)
+       for (boost::filesystem::directory_iterator itr (input_dir); itr != end_itr; ++itr)
+       {
+         // Only add PCD files
+-        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ())) == ".PCD" )
++        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (itr->path ().extension()) == ".PCD" )
+         {
+           pcd_files.push_back (itr->path ().string ());
+           PCL_INFO ("[Batch processing mode] Added %s for processing.\n", itr->path ().string ().c_str ());
+diff --git a/tools/local_max.cpp b/tools/local_max.cpp
+index fc6a7da9d..9d107e78e 100644
+--- a/tools/local_max.cpp
++++ b/tools/local_max.cpp
+@@ -206,7 +206,7 @@ main (int argc, char** argv)
+       for (boost::filesystem::directory_iterator itr (input_dir); itr != end_itr; ++itr)
+       {
+         // Only add PCD files
+-        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ())) == ".PCD" )
++        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (itr->path ().extension()) == ".PCD" )
+         {
+           pcd_files.push_back (itr->path ().string ());
+           PCL_INFO ("[Batch processing mode] Added %s for processing.\n", itr->path ().string ().c_str ());
+diff --git a/tools/morph.cpp b/tools/morph.cpp
+index eeaaa5d64..20e06bdea 100644
+--- a/tools/morph.cpp
++++ b/tools/morph.cpp
+@@ -229,7 +229,7 @@ main (int argc, char** argv)
+       for (boost::filesystem::directory_iterator itr (input_dir); itr != end_itr; ++itr)
+       {
+         // Only add PCD files
+-        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ())) == ".PCD" )
++        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (itr->path ().extension()) == ".PCD" )
+         {
+           pcd_files.push_back (itr->path ().string ());
+           PCL_INFO ("[Batch processing mode] Added %s for processing.\n", itr->path ().string ().c_str ());
+diff --git a/tools/normal_estimation.cpp b/tools/normal_estimation.cpp
+index adea87eab..e4bfbdd55 100644
+--- a/tools/normal_estimation.cpp
++++ b/tools/normal_estimation.cpp
+@@ -231,7 +231,7 @@ main (int argc, char** argv)
+       for (boost::filesystem::directory_iterator itr (input_dir); itr != end_itr; ++itr)
+       {
+         // Only add PCD files
+-        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ())) == ".PCD" )
++        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (itr->path ().extension()) == ".PCD" )
+         {
+           pcd_files.push_back (itr->path ().string ());
+           PCL_INFO ("[Batch processing mode] Added %s for processing.\n", itr->path ().string ().c_str ());
+diff --git a/tools/passthrough_filter.cpp b/tools/passthrough_filter.cpp
+index be148a99e..4d713df7d 100644
+--- a/tools/passthrough_filter.cpp
++++ b/tools/passthrough_filter.cpp
+@@ -223,7 +223,7 @@ main (int argc, char** argv)
+       for (boost::filesystem::directory_iterator itr (input_dir); itr != end_itr; ++itr)
+       {
+         // Only add PCD files
+-        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ())) == ".PCD" )
++        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (itr->path ().extension()) == ".PCD" )
+         {
+           pcd_files.push_back (itr->path ().string ());
+           PCL_INFO ("[Batch processing mode] Added %s for processing.\n", itr->path ().string ().c_str ());
+diff --git a/tools/pcd_grabber_viewer.cpp b/tools/pcd_grabber_viewer.cpp
+index d75525d0a..5388f952e 100644
+--- a/tools/pcd_grabber_viewer.cpp
++++ b/tools/pcd_grabber_viewer.cpp
+@@ -193,7 +193,7 @@ main (int argc, char** argv)
+       boost::filesystem::directory_iterator end_itr;
+       for (boost::filesystem::directory_iterator itr (path); itr != end_itr; ++itr)
+       {
+-        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ())) == ".PCD" )
++        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (itr->path ().extension()) == ".PCD" )
+         {
+           pcd_files.push_back (itr->path ().string ());
+           std::cout << "added: " << itr->path ().string () << std::endl;
+diff --git a/tools/progressive_morphological_filter.cpp b/tools/progressive_morphological_filter.cpp
+index d00c1cbdb..f0d2d5290 100644
+--- a/tools/progressive_morphological_filter.cpp
++++ b/tools/progressive_morphological_filter.cpp
+@@ -307,7 +307,7 @@ main (int argc, char** argv)
+       for (boost::filesystem::directory_iterator itr (input_dir); itr != end_itr; ++itr)
+       {
+         // Only add PCD files
+-        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ())) == ".PCD" )
++        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (itr->path ().extension()) == ".PCD" )
+         {
+           pcd_files.push_back (itr->path ().string ());
+           PCL_INFO ("[Batch processing mode] Added %s for processing.\n", itr->path ().string ().c_str ());
+diff --git a/tools/radius_filter.cpp b/tools/radius_filter.cpp
+index 9ce67e3bd..34e9d23d2 100644
+--- a/tools/radius_filter.cpp
++++ b/tools/radius_filter.cpp
+@@ -210,7 +210,7 @@ main (int argc, char** argv)
+       for (boost::filesystem::directory_iterator itr (input_dir); itr != end_itr; ++itr)
+       {
+         // Only add PCD files
+-        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ())) == ".PCD" )
++        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (itr->path ().extension()) == ".PCD" )
+         {
+           pcd_files.push_back (itr->path ().string ());
+           PCL_INFO ("[Batch processing mode] Added %s for processing.\n", itr->path ().string ().c_str ());
+diff --git a/tools/sac_segmentation_plane.cpp b/tools/sac_segmentation_plane.cpp
+index b7fdbe11f..6da430050 100644
+--- a/tools/sac_segmentation_plane.cpp
++++ b/tools/sac_segmentation_plane.cpp
+@@ -286,7 +286,7 @@ main (int argc, char** argv)
+       for (boost::filesystem::directory_iterator itr (input_dir); itr != end_itr; ++itr)
+       {
+         // Only add PCD files
+-        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (boost::filesystem::extension (itr->path ())) == ".PCD" )
++        if (!is_directory (itr->status ()) && boost::algorithm::to_upper_copy (itr->path ().extension()) == ".PCD" )
+         {
+           pcd_files.push_back (itr->path ().string ());
+           PCL_INFO ("[Batch processing mode] Added %s for processing.\n", itr->path ().string ().c_str ());
+diff --git a/tools/unary_classifier_segment.cpp b/tools/unary_classifier_segment.cpp
+index 73f527a7b..176c7fcfb 100644
+--- a/tools/unary_classifier_segment.cpp
++++ b/tools/unary_classifier_segment.cpp
+@@ -82,7 +82,7 @@ loadTrainedFeatures (std::vector<FeatureT::Ptr> &out,
+   for (boost::filesystem::directory_iterator it (base_dir); it != boost::filesystem::directory_iterator (); ++it)
+   {    
+     if (!boost::filesystem::is_directory (it->status ()) &&
+-        boost::filesystem::extension (it->path ()) == ".pcd")
++        it->path ().extension() == ".pcd")
+     {   
+       std::stringstream ss;
+       ss << it->path ().string ();
+diff --git a/tools/virtual_scanner.cpp b/tools/virtual_scanner.cpp
+index 7c93d2dee..13b5b94ec 100644
+--- a/tools/virtual_scanner.cpp
++++ b/tools/virtual_scanner.cpp
+@@ -80,7 +80,8 @@ struct ScanParameters
+ vtkPolyData*
+ loadDataSet (const char* file_name)
+ {
+-  std::string extension = boost::filesystem::extension (file_name);
++  boost::filesystem::path path (file_name);
++  std::string extension = path.extension();
+   if (extension == ".ply")
+   {
+     vtkPLYReader* reader = vtkPLYReader::New ();
